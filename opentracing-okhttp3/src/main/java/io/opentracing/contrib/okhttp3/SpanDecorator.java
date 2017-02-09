@@ -89,7 +89,8 @@ public interface SpanDecorator {
                 redirectLogs.put(Tags.PEER_PORT.getKey(), (short)connection.socket().getPort());
 
                 if (connection.socket().getInetAddress() instanceof Inet4Address) {
-                    redirectLogs.put(Tags.PEER_HOST_IPV4.getKey(), connection.socket().getInetAddress().getHostAddress());
+                    byte[] address = connection.socket().getInetAddress().getAddress();
+                    redirectLogs.put(Tags.PEER_HOST_IPV4.getKey(), ByteBuffer.wrap(address).getInt());
                 } else {
                     redirectLogs.put(Tags.PEER_HOST_IPV6.getKey(), connection.socket().getInetAddress().getHostAddress());
                 }
