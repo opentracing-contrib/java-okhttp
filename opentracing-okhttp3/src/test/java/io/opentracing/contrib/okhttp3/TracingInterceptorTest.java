@@ -71,6 +71,7 @@ public class TracingInterceptorTest {
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
+        assertOnErrors(mockSpans);
 
         MockSpan mockSpan = mockSpans.get(0);
         Assert.assertEquals(8, mockSpan.tags().size());
@@ -106,6 +107,7 @@ public class TracingInterceptorTest {
         Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
+        assertOnErrors(mockSpans);
 
         MockSpan mockSpan = mockSpans.get(0);
         Assert.assertEquals(8, mockSpan.tags().size());
@@ -136,6 +138,7 @@ public class TracingInterceptorTest {
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
+        assertOnErrors(mockSpans);
 
         MockSpan mockSpan = mockSpans.get(0);
         Assert.assertEquals(5, mockSpans.get(0).tags().size());
@@ -155,8 +158,8 @@ public class TracingInterceptorTest {
     @Test
     public void testParentSpan() throws IOException {
         {
-            io.opentracing.Tracer.SpanBuilder parentBuilder = mockTracer.buildSpan("parent");
-            Span parent = parentBuilder.start();
+            Span parent = mockTracer.buildSpan("parent")
+                    .start();
 
             mockWebServer.enqueue(new MockResponse()
                     .setResponseCode(203));
@@ -172,6 +175,7 @@ public class TracingInterceptorTest {
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
+        assertOnErrors(mockSpans);
         Assert.assertEquals(2, mockSpans.size());
         Assert.assertEquals(mockSpans.get(0).context().traceId(), mockSpans.get(1).context().traceId());
         Assert.assertEquals(mockSpans.get(0).parentId(), mockSpans.get(1).context().spanId());
@@ -193,6 +197,7 @@ public class TracingInterceptorTest {
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
+        assertOnErrors(mockSpans);
 
         MockSpan mockSpan = mockSpans.get(0);
         Assert.assertEquals(200, mockSpan.tags().get(Tags.HTTP_STATUS.getKey()));
@@ -230,6 +235,7 @@ public class TracingInterceptorTest {
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
+        assertOnErrors(mockSpans);
 
         MockSpan mockSpan = mockSpans.get(0);
         Assert.assertEquals(301, mockSpan.tags().get(Tags.HTTP_STATUS.getKey()));
@@ -264,5 +270,11 @@ public class TracingInterceptorTest {
             result |= Integer.parseInt(part);
         }
         return result;
+    }
+
+    public static void assertOnErrors(List<MockSpan> spans) {
+        for (MockSpan mockSpan: spans) {
+            Assert.assertEquals(mockSpan.generatedErrors().toString(), 0, mockSpan.generatedErrors().size());
+        }
     }
 }
