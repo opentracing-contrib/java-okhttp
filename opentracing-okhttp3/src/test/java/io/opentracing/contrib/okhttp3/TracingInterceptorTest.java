@@ -81,7 +81,7 @@ public class TracingInterceptorTest {
         Assert.assertEquals("http://localhost:" + mockWebServer.getPort() + "/foo",
                 mockSpan.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals(202, mockSpan.tags().get(Tags.HTTP_STATUS.getKey()));
-        Assert.assertEquals((short) mockWebServer.getPort(), mockSpan.tags().get(Tags.PEER_PORT.getKey()));
+        Assert.assertEquals(mockWebServer.getPort(), mockSpan.tags().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals("localhost", mockSpan.tags().get(Tags.PEER_HOSTNAME.getKey()));
         Assert.assertEquals(ipv4ToInt("127.0.0.1"), mockSpan.tags().get(Tags.PEER_HOST_IPV4.getKey()));
         Assert.assertEquals(0, mockSpan.logEntries().size());
@@ -117,7 +117,7 @@ public class TracingInterceptorTest {
                 mockSpan.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals("GET", mockSpan.tags().get(Tags.HTTP_METHOD.getKey()));
         Assert.assertEquals(202, mockSpan.tags().get(Tags.HTTP_STATUS.getKey()));
-        Assert.assertEquals((short) mockWebServer.getPort(), mockSpan.tags().get(Tags.PEER_PORT.getKey()));
+        Assert.assertEquals(mockWebServer.getPort(), mockSpan.tags().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals("localhost", mockSpan.tags().get(Tags.PEER_HOSTNAME.getKey()));
         Assert.assertEquals(ipv4ToInt("127.0.0.1"), mockSpan.tags().get(Tags.PEER_HOST_IPV4.getKey()));
         Assert.assertEquals(0, mockSpan.logEntries().size());

@@ -98,7 +98,7 @@ public interface SpanDecorator {
                 span.log(redirectLogs);
             } else {
                 Tags.PEER_HOSTNAME.set(span, connection.socket().getInetAddress().getHostName());
-                Tags.PEER_PORT.set(span, (short) connection.socket().getPort());
+                Tags.PEER_PORT.set(span, connection.socket().getPort());
 
                 if (connection.socket().getInetAddress() instanceof Inet4Address) {
                     byte[] address = connection.socket().getInetAddress().getAddress();
