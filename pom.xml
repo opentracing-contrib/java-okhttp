@@ -8,8 +8,8 @@
   <packaging>pom</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>Support for integrating OpenTracing in Web Servlet projects</description>
-  <url>http://github.com/opentracing-contrib/java-web-servlet-filter</url>
+  <description>OpenTracing instrumentation for okhttp client</description>
+  <url>https://github.com/opentracing-contrib/java-okhttp</url>
 
   <scm>
     <url>https://github.com/opentracing-contrib/java-okhttp</url>
@@ -30,7 +30,7 @@
     <developer>
       <id>pavolloffay</id>
       <name>Pavol Loffay</name>
-      <email>p.loffay@gmail.com</email>
+      <email>ploffay@redhat.com</email>
     </developer>
   </developers>
 
