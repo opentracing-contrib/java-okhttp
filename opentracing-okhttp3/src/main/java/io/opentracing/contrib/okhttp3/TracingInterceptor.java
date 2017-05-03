@@ -75,7 +75,7 @@ public class TracingInterceptor implements Interceptor {
 
             Object tag = chain.request().tag();
             TagWrapper tagWrapper;
-            if (tag != null && tag instanceof TagWrapper) {
+            if (tag instanceof TagWrapper) {
                 tagWrapper = (TagWrapper) tag;
                 if (tagWrapper.getParentSpanContext() != null) {
                     spanBuilder.asChildOf(tagWrapper.getParentSpanContext());
@@ -112,7 +112,7 @@ public class TracingInterceptor implements Interceptor {
         } else {
             response = chain.proceed(chain.request());
             Object tag = response.request().tag();
-            if (tag != null && tag instanceof TagWrapper) {
+            if (tag instanceof TagWrapper) {
                 TagWrapper tagWrapper = (TagWrapper) tag;
                 for (SpanDecorator spanDecorator: decorators) {
                     spanDecorator.onNetworkResponse(chain.connection(), response, tagWrapper.getSpan());
