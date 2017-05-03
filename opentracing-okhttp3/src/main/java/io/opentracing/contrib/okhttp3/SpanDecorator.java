@@ -86,7 +86,7 @@ public interface SpanDecorator {
                 Map<String, Object> redirectLogs = new HashMap<>(4);
                 redirectLogs.put("event", "redirect");
                 redirectLogs.put(Tags.PEER_HOSTNAME.getKey(), connection.socket().getInetAddress().getHostName());
-                redirectLogs.put(Tags.PEER_PORT.getKey(), (short)connection.socket().getPort());
+                redirectLogs.put(Tags.PEER_PORT.getKey(), connection.socket().getPort());
 
                 if (connection.socket().getInetAddress() instanceof Inet4Address) {
                     byte[] address = connection.socket().getInetAddress().getAddress();

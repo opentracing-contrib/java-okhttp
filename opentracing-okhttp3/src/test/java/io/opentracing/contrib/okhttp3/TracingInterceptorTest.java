@@ -1,23 +1,14 @@
 package io.opentracing.contrib.okhttp3;
 
+import io.opentracing.Span;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
+import io.opentracing.tag.Tags;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
-
-import org.hamcrest.core.IsEqual;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.jayway.awaitility.Awaitility;
-
-import io.opentracing.Span;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.mock.MockTracer;
-import io.opentracing.tag.Tags;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -25,6 +16,12 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.awaitility.Awaitility;
+import org.hamcrest.core.IsEqual;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Pavol Loffay
@@ -206,8 +203,7 @@ public class TracingInterceptorTest {
         Assert.assertEquals(4, mockSpan.logEntries().get(0).fields().size());
         Assert.assertEquals("redirect", mockSpan.logEntries().get(0).fields().get("event"));
         Assert.assertEquals("localhost", mockSpan.logEntries().get(0).fields().get(Tags.PEER_HOSTNAME.getKey()));
-        Assert.assertEquals((short)mockWebServer.getPort(),
-                mockSpan.logEntries().get(0).fields().get(Tags.PEER_PORT.getKey()));
+        Assert.assertEquals(mockWebServer.getPort(), mockSpan.logEntries().get(0).fields().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals(ipv4ToInt("127.0.0.1"),
                 mockSpan.logEntries().get(0).fields().get(Tags.PEER_HOST_IPV4.getKey()));
     }
@@ -244,8 +240,7 @@ public class TracingInterceptorTest {
         Assert.assertEquals(4, mockSpan.logEntries().get(0).fields().size());
         Assert.assertEquals("redirect", mockSpan.logEntries().get(0).fields().get("event"));
         Assert.assertEquals("localhost", mockSpan.logEntries().get(0).fields().get(Tags.PEER_HOSTNAME.getKey()));
-        Assert.assertEquals((short)mockWebServer.getPort(),
-                mockSpan.logEntries().get(0).fields().get(Tags.PEER_PORT.getKey()));
+        Assert.assertEquals(mockWebServer.getPort(), mockSpan.logEntries().get(0).fields().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals(ipv4ToInt("127.0.0.1"),
                 mockSpan.logEntries().get(0).fields().get(Tags.PEER_HOST_IPV4.getKey()));
     }
