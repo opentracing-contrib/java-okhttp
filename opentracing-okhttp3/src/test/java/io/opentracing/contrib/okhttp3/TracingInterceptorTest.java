@@ -124,7 +124,7 @@ public class TracingInterceptorTest {
     public void testUnknownHostException() throws IOException {
         {
             Request request = new Request.Builder()
-                    .url("http://qwertydsanx.com/")
+                    .url("http://nonexisting.example.com/")
                     .get()
                     .build();
 
@@ -142,7 +142,7 @@ public class TracingInterceptorTest {
         Assert.assertEquals("java-okhttp", mockSpan.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertEquals(Tags.SPAN_KIND_CLIENT, mockSpan.tags().get(Tags.SPAN_KIND.getKey()));
         Assert.assertEquals("GET", mockSpan.tags().get(Tags.HTTP_METHOD.getKey()));
-        Assert.assertEquals("http://qwertydsanx.com/", mockSpan.tags().get(Tags.HTTP_URL.getKey()));
+        Assert.assertEquals("http://nonexisting.example.com/", mockSpan.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals(Boolean.TRUE, mockSpan.tags().get(Tags.ERROR.getKey()));
         Assert.assertEquals(1, mockSpan.logEntries().size());
         Assert.assertEquals(4, mockSpan.logEntries().get(0).fields().size());
