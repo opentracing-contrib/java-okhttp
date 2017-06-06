@@ -76,8 +76,9 @@ public abstract class AbstractOkHttpTest {
         assertOnErrors(mockSpans);
 
         MockSpan networkSpan = mockSpans.get(0);
-        Assert.assertEquals(7, networkSpan.tags().size());
+        Assert.assertEquals(8, networkSpan.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_CLIENT, networkSpan.tags().get(Tags.SPAN_KIND.getKey()));
+        Assert.assertEquals(TracingCallFactory.COMPONENT_NAME, networkSpan.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertEquals("GET", networkSpan.tags().get(Tags.HTTP_METHOD.getKey()));
         Assert.assertEquals("http://localhost:" + mockWebServer.getPort() + "/foo",
                 networkSpan.tags().get(Tags.HTTP_URL.getKey()));
@@ -112,8 +113,9 @@ public abstract class AbstractOkHttpTest {
         assertOnErrors(mockSpans);
 
         MockSpan networkSpan = mockSpans.get(0);
-        Assert.assertEquals(7, networkSpan.tags().size());
+        Assert.assertEquals(8, networkSpan.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_CLIENT, networkSpan.tags().get(Tags.SPAN_KIND.getKey()));
+        Assert.assertEquals(TracingCallFactory.COMPONENT_NAME, networkSpan.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertEquals("http://localhost:" + mockWebServer.getPort() + "/foo",
                 networkSpan.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals("GET", networkSpan.tags().get(Tags.HTTP_METHOD.getKey()));
@@ -339,14 +341,23 @@ public abstract class AbstractOkHttpTest {
         assertOnErrors(mockSpans);
 
         MockSpan networkSpan = mockSpans.get(0);
+        Assert.assertEquals(8, networkSpan.tags().size());
+        Assert.assertEquals(Tags.SPAN_KIND_CLIENT, networkSpan.tags().get(Tags.SPAN_KIND.getKey()));
+        Assert.assertEquals(TracingCallFactory.COMPONENT_NAME, networkSpan.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertEquals(301, networkSpan.tags().get(Tags.HTTP_STATUS.getKey()));
+        Assert.assertEquals("GET", networkSpan.tags().get(Tags.HTTP_METHOD.getKey()));
         Assert.assertEquals(mockWebServer.url("foo").toString(), networkSpan.tags().get(Tags.HTTP_URL.getKey()));
+        Assert.assertEquals(TracingCallFactory.COMPONENT_NAME, networkSpan.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertEquals(mockWebServer.getPort(), networkSpan.tags().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals(ipv4ToInt("127.0.0.1"), networkSpan.tags().get(Tags.PEER_HOST_IPV4.getKey()));
         Assert.assertEquals("localhost", networkSpan.tags().get(Tags.PEER_HOSTNAME.getKey()));
 
         networkSpan = mockSpans.get(1);
+        Assert.assertEquals(8, networkSpan.tags().size());
+        Assert.assertEquals(Tags.SPAN_KIND_CLIENT, networkSpan.tags().get(Tags.SPAN_KIND.getKey()));
+        Assert.assertEquals(TracingCallFactory.COMPONENT_NAME, networkSpan.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertEquals(200, networkSpan.tags().get(Tags.HTTP_STATUS.getKey()));
+        Assert.assertEquals("GET", networkSpan.tags().get(Tags.HTTP_METHOD.getKey()));
         Assert.assertEquals(mockWebServer.url("redirect").toString(), networkSpan.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals(mockWebServer.getPort(), networkSpan.tags().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals(ipv4ToInt("127.0.0.1"), networkSpan.tags().get(Tags.PEER_HOST_IPV4.getKey()));

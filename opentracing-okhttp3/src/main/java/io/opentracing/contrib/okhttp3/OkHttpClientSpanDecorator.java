@@ -54,6 +54,7 @@ public interface OkHttpClientSpanDecorator {
     OkHttpClientSpanDecorator STANDARD_TAGS = new OkHttpClientSpanDecorator() {
         @Override
         public void onRequest(Request request, BaseSpan<?> span) {
+            Tags.COMPONENT.set(span, TracingCallFactory.COMPONENT_NAME);
             Tags.HTTP_METHOD.set(span, request.method());
             Tags.HTTP_URL.set(span, request.url().toString());
         }
