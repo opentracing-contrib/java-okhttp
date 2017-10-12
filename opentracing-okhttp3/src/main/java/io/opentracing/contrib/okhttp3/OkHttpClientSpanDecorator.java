@@ -1,11 +1,11 @@
 package io.opentracing.contrib.okhttp3;
 
+import io.opentracing.Span;
 import java.net.Inet4Address;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.opentracing.BaseSpan;
 import io.opentracing.tag.Tags;
 import okhttp3.Connection;
 import okhttp3.Request;
@@ -24,7 +24,7 @@ public interface OkHttpClientSpanDecorator {
      * @param request request
      * @param span span
      */
-    void onRequest(Request request, BaseSpan<?> span);
+    void onRequest(Request request, Span span);
 
     /**
      * Decorate span on an error e.g. {@link java.net.UnknownHostException} or any exception in interceptor.
@@ -32,7 +32,7 @@ public interface OkHttpClientSpanDecorator {
      * @param throwable exception
      * @param span span
      */
-    void onError(Throwable throwable, BaseSpan<?> span);
+    void onError(Throwable throwable, Span span);
 
     /**
      * This is invoked after {@link okhttp3.Interceptor.Chain#proceed(Request)} in network interceptor.
@@ -42,7 +42,7 @@ public interface OkHttpClientSpanDecorator {
      * @param response response
      * @param span span
      */
-    void onResponse(Connection connection, Response response, BaseSpan<?> span);
+    void onResponse(Connection connection, Response response, Span span);
 
     /**
      * Decorator which adds standard HTTP and peer tags to the span.
@@ -53,20 +53,20 @@ public interface OkHttpClientSpanDecorator {
      */
     OkHttpClientSpanDecorator STANDARD_TAGS = new OkHttpClientSpanDecorator() {
         @Override
-        public void onRequest(Request request, BaseSpan<?> span) {
+        public void onRequest(Request request, Span span) {
             Tags.COMPONENT.set(span, TracingCallFactory.COMPONENT_NAME);
             Tags.HTTP_METHOD.set(span, request.method());
             Tags.HTTP_URL.set(span, request.url().toString());
         }
 
         @Override
-        public void onError(Throwable throwable, BaseSpan<?> span) {
+        public void onError(Throwable throwable, Span span) {
             Tags.ERROR.set(span, Boolean.TRUE);
             span.log(errorLogs(throwable));
         }
 
         @Override
-        public void onResponse(Connection connection, Response response, BaseSpan<?> span) {
+        public void onResponse(Connection connection, Response response, Span span) {
             Tags.HTTP_STATUS.set(span, response.code());
             Tags.PEER_HOSTNAME.set(span, connection.socket().getInetAddress().getHostName());
             Tags.PEER_PORT.set(span, connection.socket().getPort());

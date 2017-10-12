@@ -1,6 +1,6 @@
 package io.opentracing.contrib.okhttp3;
 
-import io.opentracing.BaseSpan;
+import io.opentracing.Span;
 
 /**
  * Tag wrapper to store parent span context and user defined tags.
@@ -8,7 +8,7 @@ import io.opentracing.BaseSpan;
  * @author Pavol Loffay
  */
 public class TagWrapper {
-    private BaseSpan<?> span;
+    private Span span;
 
     private Object tag;
 
@@ -23,7 +23,7 @@ public class TagWrapper {
      * @param wrapper previous wrapper
      * @param span span
      */
-    TagWrapper(TagWrapper wrapper, BaseSpan<?> span) {
+    TagWrapper(TagWrapper wrapper, Span span) {
         this.span = span;
         this.tag = wrapper.tag;
     }
@@ -36,7 +36,7 @@ public class TagWrapper {
         return tag;
     }
 
-    BaseSpan<?> getSpan() {
+    Span getSpan() {
         return span;
     }
 }

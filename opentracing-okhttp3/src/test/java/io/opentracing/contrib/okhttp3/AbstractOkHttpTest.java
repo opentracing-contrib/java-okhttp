@@ -1,5 +1,7 @@
 package io.opentracing.contrib.okhttp3;
 
+import io.opentracing.Scope;
+import io.opentracing.util.ThreadLocalScopeManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,11 +23,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.opentracing.ActiveSpan;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
-import io.opentracing.util.ThreadLocalActiveSpanSource;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
@@ -38,7 +38,7 @@ import okhttp3.mockwebserver.MockWebServer;
  */
 public abstract class AbstractOkHttpTest {
 
-    protected static MockTracer mockTracer = new MockTracer(new ThreadLocalActiveSpanSource(), MockTracer.Propagator
+    protected static MockTracer mockTracer = new MockTracer(new ThreadLocalScopeManager(), MockTracer.Propagator
             .TEXT_MAP);
     protected MockWebServer mockWebServer = new MockWebServer();
     protected Call.Factory client;
@@ -150,7 +150,7 @@ public abstract class AbstractOkHttpTest {
                     mockWebServer.enqueue(new MockResponse()
                             .setResponseCode(200));
 
-                    ActiveSpan activeParent = mockTracer.makeActive(parentSpan);
+                    Scope activeParent = mockTracer.scopeManager().activate(parentSpan);
                     client.newCall(new Request.Builder()
                             .url(requestUrl)
                             .build())
@@ -221,7 +221,7 @@ public abstract class AbstractOkHttpTest {
                     mockWebServer.enqueue(new MockResponse()
                             .setResponseCode(200));
 
-                    ActiveSpan activeParent = mockTracer.makeActive(parentSpan);
+                    Scope activeParent = mockTracer.scopeManager().activate(parentSpan);
                     try {
                         client.newCall(new Request.Builder()
                                 .url(requestUrl)
@@ -298,7 +298,7 @@ public abstract class AbstractOkHttpTest {
     @Test
     public void testParentSpanSource() throws IOException {
         {
-            ActiveSpan parent = mockTracer.buildSpan("parent")
+            Scope parent = mockTracer.buildSpan("parent")
                     .startActive();
 
             mockWebServer.enqueue(new MockResponse()
@@ -306,7 +306,7 @@ public abstract class AbstractOkHttpTest {
 
             Request request = new Request.Builder()
                     .url(mockWebServer.url("bar"))
-                    .tag(new TagWrapper(parent.context()))
+                    .tag(new TagWrapper(parent.span().context()))
                     .get()
                     .build();
 

@@ -1,5 +1,7 @@
 package io.opentracing.contrib.okhttp3;
 
+import io.opentracing.Scope;
+import io.opentracing.contrib.concurrent.TracedExecutorService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,9 +9,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import io.opentracing.ActiveSpan;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.okhttp3.concurrent.TracingExecutorService;
 import io.opentracing.tag.Tags;
 import okhttp3.Dispatcher;
 import okhttp3.Interceptor;
@@ -67,7 +67,7 @@ public class TracingInterceptor implements Interceptor {
         TracingInterceptor tracingInterceptor = new TracingInterceptor(tracer, decorators);
         builder.interceptors().add(0, tracingInterceptor);
         builder.networkInterceptors().add(0, tracingInterceptor);
-        builder.dispatcher(new Dispatcher(new TracingExecutorService(Executors.newFixedThreadPool(10), tracer)));
+        builder.dispatcher(new Dispatcher(new TracedExecutorService(Executors.newFixedThreadPool(10), tracer)));
         return builder.build();
     }
 
@@ -77,26 +77,26 @@ public class TracingInterceptor implements Interceptor {
 
         // application interceptor?
         if (chain.connection() == null) {
-            ActiveSpan span = tracer.buildSpan(chain.request().method())
+            Scope scope = tracer.buildSpan(chain.request().method())
                     .withTag(Tags.COMPONENT.getKey(), TracingCallFactory.COMPONENT_NAME)
-                    .startActive();
+                    .startActive(true);
 
             Request.Builder requestBuilder = chain.request().newBuilder();
 
             Object tag = chain.request().tag();
             TagWrapper tagWrapper = tag instanceof TagWrapper
                     ? (TagWrapper) tag : new TagWrapper(tag);
-            requestBuilder.tag(new TagWrapper(tagWrapper, span));
+            requestBuilder.tag(new TagWrapper(tagWrapper, scope.span()));
 
             try {
                 response = chain.proceed(requestBuilder.build());
             } catch (Throwable ex) {
                 for (OkHttpClientSpanDecorator spanDecorator: decorators) {
-                    spanDecorator.onError(ex, span);
+                    spanDecorator.onError(ex, scope.span());
                 }
                 throw ex;
             } finally {
-                span.deactivate();
+                scope.close();
             }
         } else {
             Object tag = chain.request().tag();

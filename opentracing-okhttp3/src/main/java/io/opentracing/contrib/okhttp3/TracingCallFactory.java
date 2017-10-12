@@ -1,11 +1,11 @@
 package io.opentracing.contrib.okhttp3;
 
+import io.opentracing.Scope;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import io.opentracing.ActiveSpan;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
@@ -27,13 +27,7 @@ public class TracingCallFactory implements Call.Factory {
     private OkHttpClient okHttpClient;
 
     private Tracer tracer;
-    private List<OkHttpClientSpanDecorator> decorators = new ArrayList<>();
-
-    public TracingCallFactory(OkHttpClient okHttpClient) {
-        this.okHttpClient = okHttpClient;
-        this.tracer = tracer;
-        decorators.add(OkHttpClientSpanDecorator.STANDARD_TAGS);
-    }
+    private List<OkHttpClientSpanDecorator> decorators;
 
     public TracingCallFactory(OkHttpClient okHttpClient, Tracer tracer) {
         this(okHttpClient, tracer, Collections.singletonList(OkHttpClientSpanDecorator.STANDARD_TAGS));
@@ -47,43 +41,43 @@ public class TracingCallFactory implements Call.Factory {
 
     @Override
     public Call newCall(final Request request) {
-        ActiveSpan activeSpan = null;
+        Scope scope = null;
         try {
-            activeSpan = tracer.buildSpan(request.method())
+            scope = tracer.buildSpan(request.method())
                     .withTag(Tags.COMPONENT.getKey(), COMPONENT_NAME)
-                    .startActive();
+                    .startActive(false);
 
             /**
              * In case of exception network interceptor is not called
              */
             OkHttpClient.Builder okBuilder = okHttpClient.newBuilder();
-            okBuilder.networkInterceptors().add(0, new NetworkInterceptor(tracer, activeSpan.context(), decorators));
+            okBuilder.networkInterceptors().add(0, new NetworkInterceptor(tracer, scope.span().context(), decorators));
 
-            final ActiveSpan.Continuation continuation = activeSpan.capture();
+            final Scope finalScope = scope;
             okBuilder.interceptors().add(0, new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
-                    ActiveSpan activeInterceptorSpan = continuation.activate();
+                    Scope activeInterceptorSpan = tracer.scopeManager().activate(finalScope.span(), true);
                     try {
                         return chain.proceed(chain.request());
                     } catch (Exception ex) {
                         for (OkHttpClientSpanDecorator spanDecorator : decorators) {
-                            spanDecorator.onError(ex, activeInterceptorSpan);
+                            spanDecorator.onError(ex, activeInterceptorSpan.span());
                         }
                         throw ex;
                     } finally {
-                        activeInterceptorSpan.deactivate();
+                        activeInterceptorSpan.close();
                     }
                 }
             });
             return okBuilder.build().newCall(request);
         } catch (Throwable ex) {
             for (OkHttpClientSpanDecorator spanDecorator: decorators) {
-                spanDecorator.onError(ex, activeSpan);
+                spanDecorator.onError(ex, scope.span());
             }
             throw ex;
         } finally {
-            activeSpan.deactivate();
+            scope.close();
         }
     }
 
@@ -100,21 +94,21 @@ public class TracingCallFactory implements Call.Factory {
 
         @Override
         public Response intercept(Chain chain) throws IOException {
-            try (ActiveSpan networkSpan = tracer.buildSpan(chain.request().method())
+            try (Scope networkScope = tracer.buildSpan(chain.request().method())
                         .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
                         .asChildOf(parentContext)
-                        .startActive()) {
+                        .startActive(true)) {
 
                 for (OkHttpClientSpanDecorator spanDecorator: decorators) {
-                    spanDecorator.onRequest(chain.request(), networkSpan);
+                    spanDecorator.onRequest(chain.request(), networkScope.span());
                 }
 
                 Request.Builder requestBuilder = chain.request().newBuilder();
-                tracer.inject(networkSpan.context(), Format.Builtin.HTTP_HEADERS, new RequestBuilderInjectAdapter(requestBuilder));
+                tracer.inject(networkScope.span().context(), Format.Builtin.HTTP_HEADERS, new RequestBuilderInjectAdapter(requestBuilder));
                 Response response = chain.proceed(requestBuilder.build());
 
                 for (OkHttpClientSpanDecorator spanDecorator: decorators) {
-                    spanDecorator.onResponse(chain.connection(), response, networkSpan);
+                    spanDecorator.onResponse(chain.connection(), response, networkScope.span());
                 }
 
                 return response;
