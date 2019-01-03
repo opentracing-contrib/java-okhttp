@@ -17,6 +17,6 @@ public class TracingInterceptorTest extends AbstractOkHttpTest {
 
     @Ignore("Does not work for interceptors")
     @Override
-    public void testAsyncMultipleRequests() throws ExecutionException, InterruptedException {
+    public void testAsyncMultipleRequests() {
     }
 }

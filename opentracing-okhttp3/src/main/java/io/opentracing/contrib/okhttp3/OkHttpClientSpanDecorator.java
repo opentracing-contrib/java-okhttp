@@ -2,6 +2,7 @@ package io.opentracing.contrib.okhttp3;
 
 import io.opentracing.Span;
 import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,14 +69,15 @@ public interface OkHttpClientSpanDecorator {
         @Override
         public void onResponse(Connection connection, Response response, Span span) {
             Tags.HTTP_STATUS.set(span, response.code());
-            Tags.PEER_HOSTNAME.set(span, connection.socket().getInetAddress().getHostName());
+            InetAddress inetAddress = connection.socket().getInetAddress();
+            Tags.PEER_HOSTNAME.set(span, inetAddress.getHostName());
             Tags.PEER_PORT.set(span, connection.socket().getPort());
 
-            if (connection.socket().getInetAddress() instanceof Inet4Address) {
-                byte[] address = connection.socket().getInetAddress().getAddress();
+            if (inetAddress instanceof Inet4Address) {
+                byte[] address = inetAddress.getAddress();
                 Tags.PEER_HOST_IPV4.set(span, ByteBuffer.wrap(address).getInt());
             } else {
-                Tags.PEER_HOST_IPV6.set(span, connection.socket().getInetAddress().toString());
+                Tags.PEER_HOST_IPV6.set(span, inetAddress.toString());
             }
         }
 

@@ -71,7 +71,7 @@ public class TracingCallFactory implements Call.Factory {
                 }
             });
             return okBuilder.build().newCall(request);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             for (OkHttpClientSpanDecorator spanDecorator: decorators) {
                 spanDecorator.onError(ex, scope.span());
             }

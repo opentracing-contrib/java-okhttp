@@ -28,10 +28,6 @@ public class TagWrapper {
         this.tag = wrapper.tag;
     }
 
-    public void setTag(Object tag) {
-        this.tag = tag;
-    }
-
     public Object getTag() {
         return tag;
     }

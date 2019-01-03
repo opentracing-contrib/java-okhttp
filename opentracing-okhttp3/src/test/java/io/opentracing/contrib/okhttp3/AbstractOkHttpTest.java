@@ -16,6 +16,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okio.BufferedSink;
 import org.awaitility.Awaitility;
 import org.hamcrest.core.IsEqual;
 import org.junit.After;
@@ -82,6 +85,48 @@ public abstract class AbstractOkHttpTest {
         Assert.assertEquals("GET", networkSpan.tags().get(Tags.HTTP_METHOD.getKey()));
         Assert.assertEquals("http://localhost:" + mockWebServer.getPort() + "/foo",
                 networkSpan.tags().get(Tags.HTTP_URL.getKey()));
+        Assert.assertEquals(202, networkSpan.tags().get(Tags.HTTP_STATUS.getKey()));
+        Assert.assertEquals(mockWebServer.getPort(), networkSpan.tags().get(Tags.PEER_PORT.getKey()));
+        Assert.assertEquals("localhost", networkSpan.tags().get(Tags.PEER_HOSTNAME.getKey()));
+        Assert.assertEquals(ipv4ToInt("127.0.0.1"), networkSpan.tags().get(Tags.PEER_HOST_IPV4.getKey()));
+        Assert.assertEquals(0, networkSpan.logEntries().size());
+    }
+
+    @Test
+    public void testStandardTagsForPost() throws IOException {
+        {
+            mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(202));
+
+            client.newCall(new Request.Builder()
+                .url(mockWebServer.url("foo"))
+                .method("POST", new RequestBody() {
+                    @Override
+                    public MediaType contentType() {
+                        return null;
+                    }
+
+                    @Override
+                    public void writeTo(BufferedSink bufferedSink) throws IOException {
+
+                    }
+                })
+                .build())
+                .execute();
+        }
+
+        List<MockSpan> mockSpans = mockTracer.finishedSpans();
+        Assert.assertEquals(2, mockSpans.size());
+        assertLocalSpan(mockSpans);
+        assertOnErrors(mockSpans);
+
+        MockSpan networkSpan = mockSpans.get(0);
+        Assert.assertEquals(8, networkSpan.tags().size());
+        Assert.assertEquals(Tags.SPAN_KIND_CLIENT, networkSpan.tags().get(Tags.SPAN_KIND.getKey()));
+        Assert.assertEquals(TracingCallFactory.COMPONENT_NAME, networkSpan.tags().get(Tags.COMPONENT.getKey()));
+        Assert.assertEquals("POST", networkSpan.tags().get(Tags.HTTP_METHOD.getKey()));
+        Assert.assertEquals("http://localhost:" + mockWebServer.getPort() + "/foo",
+            networkSpan.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals(202, networkSpan.tags().get(Tags.HTTP_STATUS.getKey()));
         Assert.assertEquals(mockWebServer.getPort(), networkSpan.tags().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals("localhost", networkSpan.tags().get(Tags.PEER_HOSTNAME.getKey()));
