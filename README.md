@@ -12,7 +12,7 @@ client.newCall(request)...
 or use OkHttpClient directly. However when doing multiple async requests simultaneously, parent spans created
 before invoking the client are not properly inferred.
 ```java
-OkHttpClient client = TracingInerceptor.addTracing(new OkHttpClient.Builder(), tracer)
+OkHttpClient client = TracingInterceptor.addTracing(new OkHttpClient.Builder(), tracer)
 client.newCall(request)...
 ```
 
