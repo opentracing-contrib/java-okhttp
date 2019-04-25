@@ -1,6 +1,6 @@
 package io.opentracing.contrib.okhttp3;
 
-import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.contrib.concurrent.TracedExecutorService;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -77,26 +77,26 @@ public class TracingInterceptor implements Interceptor {
 
         // application interceptor?
         if (chain.connection() == null) {
-            Scope scope = tracer.buildSpan(chain.request().method())
+            Span span = tracer.buildSpan(chain.request().method())
                     .withTag(Tags.COMPONENT.getKey(), TracingCallFactory.COMPONENT_NAME)
-                    .startActive(true);
+                    .start();
 
             Request.Builder requestBuilder = chain.request().newBuilder();
 
             Object tag = chain.request().tag();
             TagWrapper tagWrapper = tag instanceof TagWrapper
                     ? (TagWrapper) tag : new TagWrapper(tag);
-            requestBuilder.tag(new TagWrapper(tagWrapper, scope.span()));
+            requestBuilder.tag(new TagWrapper(tagWrapper, span));
 
             try {
                 response = chain.proceed(requestBuilder.build());
             } catch (Throwable ex) {
                 for (OkHttpClientSpanDecorator spanDecorator: decorators) {
-                    spanDecorator.onError(ex, scope.span());
+                    spanDecorator.onError(ex, span);
                 }
                 throw ex;
             } finally {
-                scope.close();
+                span.finish();
             }
         } else {
             Object tag = chain.request().tag();

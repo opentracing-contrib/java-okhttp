@@ -1,6 +1,7 @@
 package io.opentracing.contrib.okhttp3;
 
 import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.util.ThreadLocalScopeManager;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -184,7 +185,7 @@ public abstract class AbstractOkHttpTest {
 
             final MockSpan parentSpan = mockTracer.buildSpan(requestUrl)
                     .ignoreActiveSpan()
-                    .startManual();
+                    .start();
 
             parentSpan.setTag("request-url", requestUrl);
             parentSpans.put(parentSpan.context().spanId(), parentSpan);
@@ -343,20 +344,22 @@ public abstract class AbstractOkHttpTest {
     @Test
     public void testParentSpanSource() throws IOException {
         {
-            Scope parent = mockTracer.buildSpan("parent")
-                    .startActive(true);
+            Span parent = mockTracer.buildSpan("parent")
+                    .start();
 
             mockWebServer.enqueue(new MockResponse()
                     .setResponseCode(203));
 
             Request request = new Request.Builder()
                     .url(mockWebServer.url("bar"))
-                    .tag(new TagWrapper(parent.span().context()))
+                    .tag(new TagWrapper(parent.context()))
                     .get()
                     .build();
 
-            client.newCall(request).execute();
-            parent.close();
+            try (Scope scope = mockTracer.activateSpan(parent)) {
+                client.newCall(request).execute();
+            }
+            parent.finish();
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
