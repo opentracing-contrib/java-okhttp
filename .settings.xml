@@ -6,7 +6,7 @@
   <servers>
     <server>
       <id>sonatype</id>
-      <username>${env.SONATYPE_USER}</username>
+      <username>${env.SONATYPE_USERNAME}</username>
       <password>${env.SONATYPE_PASSWORD}</password>
     </server>
     <server>
