@@ -196,7 +196,7 @@ public abstract class AbstractOkHttpTest {
                     mockWebServer.enqueue(new MockResponse()
                             .setResponseCode(200));
 
-                    mockTracer.scopeManager().activate(parentSpan, true);
+                    mockTracer.scopeManager().activate(parentSpan);
                     client.newCall(new Request.Builder()
                             .url(requestUrl)
                             .build())
@@ -267,7 +267,7 @@ public abstract class AbstractOkHttpTest {
                     mockWebServer.enqueue(new MockResponse()
                             .setResponseCode(200));
 
-                    mockTracer.scopeManager().activate(parentSpan, true);
+                    mockTracer.scopeManager().activate(parentSpan);
                     try {
                         client.newCall(new Request.Builder()
                                 .url(requestUrl)
