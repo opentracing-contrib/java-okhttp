@@ -4,7 +4,7 @@
   <parent>
     <artifactId>opentracing-okhttp-parent</artifactId>
     <groupId>io.opentracing.contrib</groupId>
-    <version>2.0.2-SNAPSHOT</version>
+    <version>3.0.0</version>
   </parent>
 
   <artifactId>opentracing-okhttp3</artifactId>
